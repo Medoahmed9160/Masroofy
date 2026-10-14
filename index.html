@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://rubfnxcxwtlydkwenlbh.supabase.co wss://rubfnxcxwtlydkwenlbh.supabase.co; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0A3536">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="مصروفي">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="app.css">
+<title>دفتر مصروفي</title>
+</head>
+<body>
+<div id="app" class="shell">
+  <aside class="rail" aria-label="التنقل">
+    <div class="brand"><span class="mark" aria-hidden="true">م</span><span>دفتر مصروفي</span></div>
+    <button class="btn primary" data-act="add" type="button">+ حركة جديدة</button>
+    <nav id="nav-d"></nav>
+    <div class="sync" data-s="warn" id="sync-d"><i></i><span>بيتوصّل…</span></div>
+  </aside>
+  <div class="col">
+    <header class="topbar">
+      <div class="brand"><span class="mark" aria-hidden="true">م</span><span>دفتر مصروفي</span></div>
+      <div class="sync" data-s="warn" id="sync-m"><i></i><span>بيتوصّل…</span></div>
+    </header>
+    <main class="main" id="view" aria-live="polite"><div class="loading" role="status">بيحمّل دفترك…</div></main>
+  </div>
+  <nav class="tabbar" id="nav-m" aria-label="التنقل"></nav>
+  <button class="fab" data-act="add" type="button" aria-label="إضافة حركة جديدة"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+
+  <div class="ov" id="ov" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-title">
+      <div class="sh-head"><h2 id="sh-title">حركة جديدة</h2><button class="xbtn" id="sh-x" type="button" aria-label="إغلاق">×</button></div>
+      <form id="f" novalidate>
+        <div class="seg" role="group" aria-label="نوع الحركة">
+          <button type="button" data-t="exp" aria-pressed="true">مصروف</button>
+          <button type="button" data-t="inc" aria-pressed="false">دخل</button>
+        </div>
+        <div><label for="f-amt">المبلغ (ج.م)</label><input id="f-amt" type="text" inputmode="decimal" autocomplete="off" placeholder="0" maxlength="14"></div>
+        <div>
+          <label for="f-cat" id="f-cat-l">الفئة</label>
+          <select id="f-cat"></select>
+          <input id="f-newcat" type="text" hidden placeholder="اسم الفئة الجديدة" maxlength="40" style="margin-top:8px" autocomplete="off" aria-label="اسم الفئة الجديدة">
+        </div>
+        <div><label for="f-name" id="f-name-l">التفاصيل</label><input id="f-name" type="text" list="names" autocomplete="off" maxlength="100" placeholder="اختياري"><datalist id="names"></datalist></div>
+        <div><label for="f-date">التاريخ</label><input id="f-date" type="date" min="2000-01-01" max="2100-01-01"></div>
+        <label class="chk" id="f-fixed-w"><input id="f-fixed" type="checkbox"><span>ثابت وبيتكرر كل شهر (إيجار، اشتراك، قسط)</span></label>
+        <p class="err" id="f-err" role="alert"></p>
+        <div class="acts">
+          <button class="btn primary" id="f-save" type="submit">حفظ</button>
+          <button class="btn" id="f-more" type="button">حفظ وإضافة تانية</button>
+          <button class="btn danger" id="f-del" type="button" hidden>حذف</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="ov" id="ov2" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="c-title">
+      <div class="sh-head"><h2 id="c-title">فئة جديدة</h2><button class="xbtn" id="c-x" type="button" aria-label="إغلاق">×</button></div>
+      <form id="cf" novalidate>
+        <div class="seg" id="c-type" role="group" aria-label="نوع الفئة">
+          <button type="button" data-t="exp" aria-pressed="true">فئة مصروف</button>
+          <button type="button" data-t="inc" aria-pressed="false">مصدر دخل</button>
+        </div>
+        <div><label for="c-name">الاسم</label><input id="c-name" type="text" maxlength="40" autocomplete="off" placeholder="اسم الفئة"></div>
+        <div><span class="lbl">اللون</span><div class="swatches" id="c-colors" role="group" aria-label="لون الفئة"></div></div>
+        <div id="c-budget-w"><label for="c-budget">ميزانية شهرية (اختياري)</label><input id="c-budget" type="text" inputmode="decimal" maxlength="14" autocomplete="off" placeholder="سيبها فاضية لو مش محتاج"></div>
+        <p class="err" id="c-err" role="alert"></p>
+        <div class="acts">
+          <button class="btn primary" id="c-save" type="submit">حفظ</button>
+          <button class="btn" id="c-arch" type="button" hidden>أرشفة</button>
+          <button class="btn danger" id="c-del" type="button" hidden>حذف</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <section id="auth" class="auth" hidden aria-live="polite"></section>
+  <div class="toast" id="toast" role="status" hidden></div>
+</div>
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
