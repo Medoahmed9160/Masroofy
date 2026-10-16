@@ -6,7 +6,8 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://rubfnxcxwtlydkwenlbh.supabase.co wss://rubfnxcxwtlydkwenlbh.supabase.co; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#14213D">
+<meta name="theme-color" content="#F1EADB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121110" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="مصروفي">
@@ -51,7 +52,6 @@
         </div>
         <div><label for="f-name" id="f-name-l">التفاصيل</label><input id="f-name" type="text" list="names" autocomplete="off" maxlength="100" placeholder="اختياري"><datalist id="names"></datalist></div>
         <div><label for="f-date">التاريخ</label><input id="f-date" type="date" min="2000-01-01" max="2100-01-01"></div>
-        <label class="chk" id="f-fixed-w"><input id="f-fixed" type="checkbox"><span>ثابت وبيتكرر كل شهر (إيجار، اشتراك، قسط)</span></label>
         <p class="err" id="f-err" role="alert"></p>
         <div class="acts">
           <button class="btn primary" id="f-save" type="submit">حفظ</button>
