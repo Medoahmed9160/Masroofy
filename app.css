@@ -241,3 +241,13 @@ td.nm{overflow-wrap:anywhere}
 
 .lockscr{z-index:60}
 .offnote{margin:0 0 8px}
+
+/* إخفاء الأرقام + الاستيراد */
+.hero-top{display:flex;align-items:center;justify-content:space-between}
+.eye{width:44px;height:44px;margin:-10px 0 -10px -10px;border:0;background:none;color:var(--hero-muted);display:grid;place-items:center;border-radius:12px}
+.hide-n .n,.hide-n .am{filter:blur(7px);-webkit-user-select:none;user-select:none}
+.maprow{display:grid;grid-template-columns:2rem 1fr 1.3fr;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+.tblwrap table{width:100%;border-collapse:collapse;font-size:13px}
+.tblwrap th,.tblwrap td{padding:8px 10px;text-align:start;border-bottom:1px solid var(--line);white-space:nowrap}
+.tblwrap td.nm{max-width:140px;overflow:hidden;text-overflow:ellipsis}

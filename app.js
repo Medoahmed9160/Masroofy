@@ -175,16 +175,19 @@ function viewHome(){
   var inc=sum(mInc),exp=sum(mExp),net=inc-exp,rate=inc>0?Math.round(net/inc*100):null;
   var w=weekReport(0);
   var sign=net>0?'+':net<0?'−':'';
+  var pmd=new Date(now.getFullYear(),now.getMonth()-1,1,12),pmr=monthRange(pmd),pdim=new Date(now.getFullYear(),now.getMonth(),0).getDate();
+  var prevExp=pmr[0]>=S.winFrom?sum(ofType(inR(S.win,pmr[0],pmr[0].slice(0,8)+pad(Math.min(now.getDate(),pdim))),'exp')):0;
+  var monthCmp=prevExp>0?'<p class="hero-week">مصروف الشهر ده مقارنة بنفس الفترة من الشهر اللي فات (<b class="n">'+fm(prevExp)+'</b> ج.م) '+pill(exp,prevExp)+'</p>':'';
   var h='';
   if(!S.cats.length){
     h+='<div class="empty"><h2>ابدأ بفئاتك</h2><p class="muted">الفئات بتاعتك إنت: اعمل فئة لكل حاجة بتصرف عليها، ومصدر لكل دخل، وسمّيها بالاسم اللي يناسبك. تقدر تعدّلها أو تضيف عليها في أي وقت.</p><div class="acts"><button class="btn primary" data-act="newcat" data-v="exp" type="button">+ فئة مصروف</button><button class="btn" data-act="newcat" data-v="inc" type="button">+ مصدر دخل</button></div></div>';
   }else if(!S.win.length){
     h+='<div class="empty"><h2>ابدأ بأول حركة</h2><p class="muted">سجّل مصروف أو دخل، وهتظهر هنا الملخصات والتجميع والاقتراحات الأسبوعية.</p><button class="btn primary" data-act="add" type="button">+ ضيف أول حركة</button></div>';
   }
-  h+='<section class="hero" aria-label="ملخص الشهر"><p class="eyebrow">صافي شهر '+esc(dt(now,{month:'long'}))+'</p>'+
+  h+='<section class="hero" aria-label="ملخص الشهر"><div class="hero-top"><p class="eyebrow">صافي شهر '+esc(dt(now,{month:'long'}))+'</p><button class="eye" type="button" data-act="hide" aria-pressed="'+(hideOn()?'true':'false')+'" aria-label="إخفاء الأرقام">'+eyeSvg(hideOn())+'</button></div>'+
     '<p class="hero-num"><span class="n">'+sign+fm(Math.abs(net))+'</span><span class="cur">ج.م</span></p>'+
     '<dl class="hero-stats"><div><dt>دخل</dt><dd class="n">'+fm(inc)+'</dd></div><div><dt>مصروف</dt><dd class="n">'+fm(exp)+'</dd></div><div><dt>ادخار</dt><dd class="n">'+(rate===null?'—':rate+'%')+'</dd></div></dl>'+
-    '<p class="hero-week">مصروف الأسبوع ده <b class="n">'+fm(w.curTot)+'</b> ج.م '+pill(w.curTot,w.prevTot)+'</p></section>';
+    '<p class="hero-week">مصروف الأسبوع ده <b class="n">'+fm(w.curTot)+'</b> ج.م '+pill(w.curTot,w.prevTot)+'</p>'+monthCmp+'</section>';
   var cats=byCat(mExp);
   var stack=cats.map(function(c){return '<span style="width:'+(exp>0?c.total/exp*100:0)+'%;background:'+ccolor(c.id)+'" title="'+esc(c.name)+'"></span>';}).join('');
   var rows=cats.map(function(c){
@@ -350,6 +353,8 @@ function viewPlan(){
     return '<div class="goal"><div class="gt"><strong>'+esc(g.name)+'</strong><span class="muted"><span class="n">'+fm(g.saved)+'</span> / <span class="n">'+fm(g.target)+'</span> ج.م</span></div><div class="meter" role="img" aria-label="'+Math.round(p)+'%"><i style="width:'+p+'%"></i></div><div class="ga"><input type="text" inputmode="decimal" id="ga-'+esc(g.id)+'" placeholder="مبلغ تضيفه" maxlength="14" autocomplete="off" aria-label="مبلغ تضيفه لهدف '+esc(g.name)+'"><button class="btn small" type="button" data-act="gadd" data-id="'+esc(g.id)+'">إضافة</button><button class="btn small" type="button" data-act="gdel" data-id="'+esc(g.id)+'">حذف</button></div></div>';
   }).join(''):'<p class="muted">لسه مفيش أهداف. مثلاً: لابتوب جديد، طوارئ، سفر.</p>')+
     '<div class="gform"><input type="text" id="g-name" placeholder="اسم الهدف" maxlength="60" autocomplete="off" aria-label="اسم الهدف"><input type="text" id="g-target" inputmode="decimal" placeholder="المبلغ المطلوب" maxlength="14" autocomplete="off" aria-label="المبلغ المطلوب"><button class="btn primary" type="button" data-act="gnew">إضافة هدف</button></div></section>';
+  if(NATIVE&&plug('LocalNotifications')){var rp=remPref();h+='<section class="card"><h2>التذكير اليومي</h2><p class="note">إشعار على موبايلك كل يوم لو لسه مسجلتش حاجة النهارده. بيتبعت من جهازك هو ومبيتبعتش أي بيانات لحد.</p><div class="acts"><button class="btn'+(rp.on?'':' primary')+'" type="button" data-act="rem-toggle" aria-pressed="'+(rp.on?'true':'false')+'">'+(rp.on?'إيقاف التذكير':'تفعيل التذكير')+'</button><label>الساعة <input type="time" id="rem-time" value="'+rp.time+'"></label></div></section>';}
+  h+='<section class="card"><h2>استيراد من Excel</h2><p class="note">عندك دفتر أو شيت قديم؟ اختار ملف Excel أو CSV وهتعرّف على أعمدته لوحدي (تاريخ، مبلغ، فئة...)، وتراجع كل حاجة قبل ما يتضاف أي شيء.</p><div class="acts"><button class="btn primary" type="button" data-act="import">اختار ملف</button></div></section>';
   h+=lockCard();
   h+='<section class="card"><h2>الحساب</h2><p class="note">الإيميل: <span class="n" style="font-family:var(--f-body)">'+esc(S.email)+'</span></p>'+
     '<p>بياناتك محفوظة على حسابك وخاصة بيك، وبتظهر على أي جهاز تسجّل منه بنفس الحساب.</p>'+
@@ -365,7 +370,7 @@ function paintNav(){
   var html=TABS.map(function(t){return '<button type="button" class="tab" data-act="tab" data-v="'+t[0]+'"'+(S.tab===t[0]?' aria-current="page"':'')+'>'+ico(t[2])+'<span>'+t[1]+'</span></button>';}).join('');
   $('#nav-m').innerHTML=html;$('#nav-d').innerHTML=html;
 }
-function render(){
+function render(){applyHide();
   var v=$('#view');if(!v)return;
   var a=document.activeElement;
   if(a&&v.contains(a)&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)&&S.ready){pendingRender=true;return;}
@@ -387,7 +392,7 @@ function paintSync(){
 var toastT=null;
 function say(msg){var t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true;},3200);}
 function showMsg(title,body){$('#view').innerHTML='<div class="empty"><h2>'+esc(title)+'</h2><p class="muted">'+esc(body)+'</p></div>';}
-function dataChanged(){S.list.stale=true;S.gAll=null;}
+function dataChanged(){S.list.stale=true;S.gAll=null;remKick();}
 
 /* ---------- data layer ---------- */
 function errText(e){
@@ -758,10 +763,12 @@ async function submitSheet(again){
     }
     var rec={type:type,amount:Math.round(amt*100)/100,category_id:catId,name:$('#f-name').value.trim().slice(0,100),date:$('#f-date').value||iso(new Date())};
     if(!S.editing)rec.id=uuid();
+    var bb=budgetBefore(rec);
     var res=await saveTx(rec,S.editing);
     upsertWin(res.tx);dataChanged();
     S.lastCat[type]=catId;
-    hap();say(res.queued?'اتسجّلت على جهازك وهتترفع لما النت يرجع':(S.editing?'اتعدّلت الحركة':'اتسجّلت الحركة'));
+    var bal=budgetAlert(rec,bb);
+    hap();say((res.queued?'اتسجّلت على جهازك وهتترفع لما النت يرجع':(S.editing?'اتعدّلت الحركة':'اتسجّلت الحركة'))+(bal?' — '+bal:''));
     saving=false;$('#f-save').disabled=false;
     if(again&&!S.editing){$('#f-amt').value='';$('#f-name').value='';setSheetType(type,catId);$('#f-amt').focus();render();}
     else{closeSheet();render();}
@@ -1047,7 +1054,7 @@ async function startSession(session){
   try{
     await loadAll();
     S.ready=true;S.tab='home';S.list.stale=true;S.gAll=null;
-    render();startRealtime();flushQueue();
+    render();startRealtime();flushQueue();remKick();
     try{var SP=plug('SplashScreen');if(SP&&SP.hide)SP.hide();}catch(e){}
   }catch(e){
     var cc=loadCache();
@@ -1056,7 +1063,120 @@ async function startSession(session){
     showMsg('مقدرتش أحمّل بياناتك','اتأكد من الإنترنت وحدّث الصفحة. لو المشكلة مستمرة اتأكد إن قاعدة البيانات اتجهزت (ملف schema.sql).');
   }
 }
+
+/* ---------- إخفاء الأرقام ---------- */
+var HIDE_KEY='masrofy:hide';
+function hideOn(){return LS.get(HIDE_KEY)==='1';}
+function applyHide(){document.body.classList.toggle('hide-n',hideOn());}
+function eyeSvg(off){return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(off?'<path d="M3 3l18 18M10.6 6.2A9.6 9.6 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3.1 3.9M6.6 6.7C3.9 8.4 2 12 2 12s3.5 6 10 6c1.7 0 3.2-.4 4.5-1"/>':'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>')+'</svg>';}
+
+/* ---------- تنبيه الميزانية ---------- */
+function catMonthSpent(catId,date){var m=monthRange(parseIso(date));return sum(inR(S.win,m[0],m[1]).filter(function(t){return t.type==='exp'&&t.category_id===catId;}));}
+function budgetBefore(rec){return rec.type==='exp'?catMonthSpent(rec.category_id,rec.date):null;}
+function budgetAlert(rec,before){
+  if(before===null||rec.type!=='exp')return '';
+  var c=S.cmap[rec.category_id],b=c&&Number(c.budget)||0;if(!(b>0))return '';
+  var m=monthRange(new Date());if(rec.date<m[0]||rec.date>m[1])return '';
+  var after=catMonthSpent(rec.category_id,rec.date);
+  if(after>=b&&before<b)return 'عدّيت ميزانية «'+c.name+'» بـ '+fm(after-b)+' ج.م';
+  if(after>=b*0.8&&before<b*0.8)return 'وصلت '+Math.round(after/b*100)+'% من ميزانية «'+c.name+'» (فاضل '+fm(b-after)+' ج.م)';
+  return '';
+}
+
+/* ---------- التذكير اليومي (إشعار محلي على الموبايل) ---------- */
+var REM_KEY='masrofy:rem',remT=0;
+function remPref(){try{var p=JSON.parse(LS.get(REM_KEY)||'null');if(p&&typeof p==='object'&&/^\d{2}:\d{2}$/.test(p.time||''))return {on:!!p.on,time:p.time};}catch(e){}return {on:false,time:'21:00'};}
+function remSave(p){LS.set(REM_KEY,JSON.stringify(p));}
+function remKick(){clearTimeout(remT);remT=setTimeout(remSchedule,1500);}
+function remIds(){var a=[];for(var i=0;i<14;i++)a.push({id:7001+i});return a;}
+async function remCancel(){var LN=plug('LocalNotifications');if(LN){try{await LN.cancel({notifications:remIds()});}catch(e){}}}
+async function remSchedule(){
+  var LN=plug('LocalNotifications');if(!LN||!NATIVE||!S.ready)return;
+  try{
+    await remCancel();
+    var p=remPref();if(!p.on)return;
+    var hm=p.time.split(':').map(Number),now=new Date(),today=iso(now),has=S.win.some(function(t){return t.date===today;}),list=[];
+    for(var k=0;k<14;k++){
+      var d=addDays(now,k);d.setHours(hm[0],hm[1],0,0);
+      if(d<=now)continue;if(k===0&&has)continue;
+      list.push({id:7001+k,title:'دفتر مصروفي',body:'سجّلت مصاريف النهارده؟ خد دقيقة وسجّلها.',schedule:{at:d,allowWhileIdle:true}});
+    }
+    if(list.length)await LN.schedule({notifications:list});
+  }catch(e){}
+}
+async function remToggle(){
+  var LN=plug('LocalNotifications'),p=remPref();if(!LN)return;
+  if(!p.on){
+    try{var r=await LN.requestPermissions();if(!r||r.display!=='granted'){say('لازم تسمح بالإشعارات من إعدادات الموبايل');return;}}
+    catch(e){say('مقدرتش أفعّل الإشعارات');return;}
+    p.on=true;
+  }else p.on=false;
+  remSave(p);remSchedule();render();
+}
+document.addEventListener('change',function(e){
+  var t=e.target;
+  if(t&&t.id==='rem-time'&&/^\d{2}:\d{2}$/.test(t.value||'')){var p=remPref();p.time=t.value;remSave(p);remSchedule();}
+});
+
+/* ---------- الاستيراد من Excel/CSV ---------- */
+function importPick(){
+  if(!window.MasrofyImport){say('أداة الاستيراد مش متحمّلة. حدّث الصفحة وجرّب تاني.');return;}
+  var inp=document.createElement('input');inp.type='file';inp.style.display='none';
+  inp.accept='.xlsx,.xlsm,.xls,.csv,.tsv,.txt,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel';
+  inp.onchange=function(){var f=inp.files&&inp.files[0];inp.remove();if(f)window.MasrofyImport.open(f,importApi);};
+  document.body.appendChild(inp);inp.click();
+}
+var importApi={commit:importCommit,after:function(){dataChanged();S.gAll=null;render();}};
+async function importCommit(recs,prog){
+  if(!S.ready||!S.sb)throw {message:'سجّل دخول الأول وجرّب تاني.'};
+  if(navigator.onLine===false||loadQ().length>0)throw {message:'الاستيراد محتاج إنترنت، وكل حركاتك لازم تكون اتزامنت. جرّب تاني بعد شوية.'};
+  var min=recs[0].date,max=min;
+  recs.forEach(function(r){if(r.date<min)min=r.date;if(r.date>max)max=r.date;});
+  var ex={},off=0,k;
+  for(var g=0;g<80;g++){
+    var q=await S.sb.from('transactions').select('date,type,amount,name,category_id').gte('date',min).lte('date',max).order('date').order('id').range(off,off+999);
+    if(q.error)throw q.error;
+    (q.data||[]).forEach(function(t){var c=S.cmap[t.category_id];k=String(t.date).slice(0,10)+'|'+t.type+'|'+Number(t.amount).toFixed(2)+'|'+norm(t.name)+'|'+(c?norm(c.name):'');ex[k]=(ex[k]||0)+1;});
+    if(!q.data||q.data.length<1000)break;off+=1000;
+  }
+  var want={},have={};
+  recs.forEach(function(r){var key=r.type+'|'+norm(r.cat);(want[key]||(want[key]={type:r.type,name:r.cat,n:0})).n++;});
+  S.cats.forEach(function(c){have[c.type+'|'+norm(c.name)]=c;});
+  var fresh=Object.keys(want).filter(function(x){return !have[x];}).map(function(x){return want[x];}).sort(function(a,b){return b.n-a.n;});
+  var free=MAX_CATS-S.cats.length,keep=fresh.length,fb={exp:'أخرى',inc:'دخل آخر'},remap={},cm={},made=0,merged=false;
+  var needFb=function(n){var t={};fresh.slice(n).forEach(function(f){t[f.type]=1;});return Object.keys(t).filter(function(ty){return !have[ty+'|'+norm(fb[ty])];}).length;};
+  if(fresh.length>free){
+    keep=Math.min(fresh.length,free);
+    while(keep>0&&keep+needFb(keep)>free)keep--;
+    if(keep+needFb(keep)>free)throw {message:'وصلت للحد الأقصى للفئات ('+MAX_CATS+'). أرشف أو امسح فئات مش محتاجها وجرّب تاني.'};
+    merged=true;
+  }
+  var f2,i;
+  for(i=0;i<keep;i++){f2=fresh[i];cm[f2.type+'|'+norm(f2.name)]=await createCategory(f2.type,f2.name);made++;}
+  for(i=keep;i<fresh.length;i++){
+    f2=fresh[i];var fk=f2.type+'|'+norm(fb[f2.type]);
+    if(!have[fk]&&!cm[fk]){cm[fk]=await createCategory(f2.type,fb[f2.type]);made++;}
+    remap[f2.type+'|'+norm(f2.name)]=fk;
+  }
+  var rows=[],dups=0;
+  recs.forEach(function(r){
+    var key=r.type+'|'+norm(r.cat);key=remap[key]||key;
+    var c=cm[key]||have[key];if(!c)return;
+    var dk=r.date+'|'+r.type+'|'+r.amount.toFixed(2)+'|'+norm(r.name)+'|'+norm(c.name);
+    if(ex[dk]>0){ex[dk]--;dups++;return;}
+    rows.push({id:uuid(),type:r.type,amount:r.amount,category_id:c.id,name:r.name,date:r.date});
+  });
+  var done=0;
+  for(i=0;i<rows.length;i+=200){
+    var chunk=rows.slice(i,i+200),r2=await S.sb.from('transactions').insert(chunk);
+    if(r2.error)throw r2.error;
+    done+=chunk.length;if(prog)prog(done,rows.length);
+  }
+  await refreshAll();
+  return {added:rows.length,dups:dups,newCats:made,merged:merged};
+}
 function resetState(){
+  remCancel();
   if(S.sb&&chan){try{S.sb.removeChannel(chan);}catch(e){}}chan=null;
   S.cats=[];S.cmap={};S.goals=[];S.win=[];S.list={items:[],loading:false,done:false,stale:true,type:'all',cat:'',q:'',tok:0,err:false};
   S.ready=false;S.started=false;S.uid=null;S.email='';S.tab='home';S.gAll=null;S.delOpen=false;S.sync='warn';paintSync();
@@ -1101,6 +1221,9 @@ document.addEventListener('click',function(e){
     goalDel(id);
   }
   else if(a==='csv'){exportCsv();}
+  else if(a==='import'){importPick();}
+  else if(a==='hide'){LS.set(HIDE_KEY,hideOn()?'0':'1');render();}
+  else if(a==='rem-toggle'){remToggle();}
   else if(a==='signout'){LS.del(LOCK_KEY);if(S.sb)S.sb.auth.signOut();}
   else if(a==='unlock'){tryUnlock(false);}
   else if(a==='lock-out'){LS.del(LOCK_KEY);hideLock();if(S.sb)S.sb.auth.signOut();}
