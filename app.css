@@ -251,3 +251,4 @@ td.nm{overflow-wrap:anywhere}
 .tblwrap table{width:100%;border-collapse:collapse;font-size:13px}
 .tblwrap th,.tblwrap td{padding:8px 10px;text-align:start;border-bottom:1px solid var(--line);white-space:nowrap}
 .tblwrap td.nm{max-width:140px;overflow:hidden;text-overflow:ellipsis}
+.themes .btn[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}

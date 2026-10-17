@@ -353,6 +353,7 @@ function viewPlan(){
     return '<div class="goal"><div class="gt"><strong>'+esc(g.name)+'</strong><span class="muted"><span class="n">'+fm(g.saved)+'</span> / <span class="n">'+fm(g.target)+'</span> ج.م</span></div><div class="meter" role="img" aria-label="'+Math.round(p)+'%"><i style="width:'+p+'%"></i></div><div class="ga"><input type="text" inputmode="decimal" id="ga-'+esc(g.id)+'" placeholder="مبلغ تضيفه" maxlength="14" autocomplete="off" aria-label="مبلغ تضيفه لهدف '+esc(g.name)+'"><button class="btn small" type="button" data-act="gadd" data-id="'+esc(g.id)+'">إضافة</button><button class="btn small" type="button" data-act="gdel" data-id="'+esc(g.id)+'">حذف</button></div></div>';
   }).join(''):'<p class="muted">لسه مفيش أهداف. مثلاً: لابتوب جديد، طوارئ، سفر.</p>')+
     '<div class="gform"><input type="text" id="g-name" placeholder="اسم الهدف" maxlength="60" autocomplete="off" aria-label="اسم الهدف"><input type="text" id="g-target" inputmode="decimal" placeholder="المبلغ المطلوب" maxlength="14" autocomplete="off" aria-label="المبلغ المطلوب"><button class="btn primary" type="button" data-act="gnew">إضافة هدف</button></div></section>';
+  h+='<section class="card"><h2>المظهر</h2><p class="note">اختار الوضع الفاتح أو الداكن، أو سيبه تلقائي ويمشي مع موبايلك.</p><div class="acts themes">'+[['auto','تلقائي'],['light','فاتح'],['dark','داكن']].map(function(o){return '<button class="btn" type="button" data-act="theme" data-v="'+o[0]+'" aria-pressed="'+(themePref()===o[0]?'true':'false')+'">'+o[1]+'</button>';}).join('')+'</div></section>';
   if(NATIVE&&plug('LocalNotifications')){var rp=remPref();h+='<section class="card"><h2>التذكير اليومي</h2><p class="note">إشعار على موبايلك كل يوم لو لسه مسجلتش حاجة النهارده. بيتبعت من جهازك هو ومبيتبعتش أي بيانات لحد.</p><div class="acts"><button class="btn'+(rp.on?'':' primary')+'" type="button" data-act="rem-toggle" aria-pressed="'+(rp.on?'true':'false')+'">'+(rp.on?'إيقاف التذكير':'تفعيل التذكير')+'</button><label>الساعة <input type="time" id="rem-time" value="'+rp.time+'"></label></div></section>';}
   h+='<section class="card"><h2>استيراد من Excel</h2><p class="note">عندك دفتر أو شيت قديم؟ اختار ملف Excel أو CSV وهتعرّف على أعمدته لوحدي (تاريخ، مبلغ، فئة...)، وتراجع كل حاجة قبل ما يتضاف أي شيء.</p><div class="acts"><button class="btn primary" type="button" data-act="import">اختار ملف</button></div></section>';
   h+=lockCard();
@@ -370,7 +371,7 @@ function paintNav(){
   var html=TABS.map(function(t){return '<button type="button" class="tab" data-act="tab" data-v="'+t[0]+'"'+(S.tab===t[0]?' aria-current="page"':'')+'>'+ico(t[2])+'<span>'+t[1]+'</span></button>';}).join('');
   $('#nav-m').innerHTML=html;$('#nav-d').innerHTML=html;
 }
-function render(){applyHide();
+function render(){applyHide();applyTheme();
   var v=$('#view');if(!v)return;
   var a=document.activeElement;
   if(a&&v.contains(a)&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)&&S.ready){pendingRender=true;return;}
@@ -1064,6 +1065,27 @@ async function startSession(session){
   }
 }
 
+
+/* ---------- المظهر: تلقائي / فاتح / داكن ---------- */
+var THEME_KEY='masrofy:theme';
+function themePref(){var v=LS.get(THEME_KEY);return v==='light'||v==='dark'?v:'auto';}
+function themeIsDark(){var v=themePref();if(v!=='auto')return v==='dark';try{return window.matchMedia('(prefers-color-scheme: dark)').matches;}catch(e){return false;}}
+function applyTheme(){
+  var v=themePref(),root=document.documentElement;
+  if(v==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',v);
+  var dark=themeIsDark(),metas=document.querySelectorAll('meta[name="theme-color"]');
+  if(metas.length>1){
+    if(v==='auto'){metas[0].setAttribute('content','#F1EADB');metas[1].setAttribute('content','#121110');}
+    else{metas[0].setAttribute('content',dark?'#121110':'#F1EADB');metas[1].setAttribute('content',dark?'#121110':'#F1EADB');}
+  }
+  var SB=NATIVE&&plug('StatusBar');
+  if(SB){
+    try{SB.setStyle({style:dark?'DARK':'LIGHT'});}catch(e){}
+    try{SB.setBackgroundColor({color:dark?'#121110':'#F1EADB'});}catch(e){}
+  }
+}
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){if(themePref()==='auto')applyTheme();});}catch(e){}
+
 /* ---------- إخفاء الأرقام ---------- */
 var HIDE_KEY='masrofy:hide';
 function hideOn(){return LS.get(HIDE_KEY)==='1';}
@@ -1222,6 +1244,7 @@ document.addEventListener('click',function(e){
   }
   else if(a==='csv'){exportCsv();}
   else if(a==='import'){importPick();}
+  else if(a==='theme'){LS.set(THEME_KEY,b.getAttribute('data-v'));render();}
   else if(a==='hide'){LS.set(HIDE_KEY,hideOn()?'0':'1');render();}
   else if(a==='rem-toggle'){remToggle();}
   else if(a==='signout'){LS.del(LOCK_KEY);if(S.sb)S.sb.auth.signOut();}
